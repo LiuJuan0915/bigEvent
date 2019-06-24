@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/iconfont.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="./js/bootstrap/css/bootstrap.min.css">
 </head>
 
 <body>
@@ -28,37 +29,66 @@
                 <input type="submit" class="input_sub" value="登 录">
             </form>
         </div>
-    </div> 
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">温馨提示!</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 导入jq文件 -->
     <script src="./js/jquery-1.12.4.min.js"></script>
+    <script src="./js/bootstrap/js/bootstrap.min.js"></script>
     <script>
         // 1. 给登录按钮设置点击事件
         // 2. 获取文本和密码，判断输入的账号或者密码是否为空，如果为空给提示
         // 3. 发送ajax请求
         // 4. 判断输入的账号密码是否正确，如果不正确给提示
-        $(function(){
-            $('.input_sub').on('click',function(e){
+        $(function () {
+            $('.input_sub').on('click', function (e) {
                 e.preventDefault();
                 var userName = $('.input_txt').val().trim();
                 var passWord = $('.input_pass').val().trim();
-                if( userName == '' || passWord == ''){
-                    alert('输入的账号或者密码为空，请重新输入!')
+                if (userName == '' || passWord == '') {
+                    $('.modal-body').text('账号密码为空！')
+                    $('#myModal').modal({
+                        keyboard: true
+                    })
+                    return;
                 }
                 $.ajax({
-                    type:'post',
-                    url:'http://localhost:8000/admin/login',
-                    data:{
+                    type: 'post',
+                    url: 'http://localhost:8000/admin/login',
+                    data: {
                         user_name: userName,
                         password: passWord
 
                     },
-                    success:function(backData){
-                         console.log(backData);  
-                         if(backData.code == 200) {
-                             window.location.href = './index.html'
-                         }else{
-                             alert('账号密码输入有误!')
-                         }
+                    success: function (backData) {
+                        console.log(backData);
+                        if (backData.code == 200) {
+                            window.location.href = './index.html'
+                        } else {
+                            $('.modal-body').text('账号密码错误！')
+                            $('#myModal').modal({
+                                keyboard: true
+                            })
+                        }
                     }
                 })
             })

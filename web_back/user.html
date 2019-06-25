@@ -48,10 +48,13 @@
                     <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
                     <div class="col-sm-10">
                         <img src="images/2.jpg" alt="" class="user_pic">
-                        <input type="file" name="user_pic" id="exampleInputFile" class="input_photo">
+                        <input type="file"  style="display:none" name="user_pic" id="exampleInputFile" class="input_photo">
+                        <br>
+                        <label for="exampleInputFile">
+                            <img src="./images/icon.png" alt="" style="height: 50px;">
+                        </label>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
                     <div class="col-sm-4">
@@ -69,26 +72,26 @@
             </form>
         </div>
     </div>
-    
-      <!-- Modal -->
-      <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="myModalLabel">温馨提示</h4>
-                    </div>
-                    <div class="modal-body">
-                        修改成功!
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary">确定</button>
-                    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">温馨提示</h4>
+                </div>
+                <div class="modal-body">
+                    修改成功!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">确定</button>
                 </div>
             </div>
         </div>
-    
+    </div>
+
     <script>
         //  用户头像预览
         // 1. 给 input:file 标签设置一个change事件
@@ -110,7 +113,7 @@
                 for (var key in backData) {
                     $('input' + key).val(backData.data[key])
                 }
-                $('.col-sm-10 img').attr('src', backData.data.user_pic)
+                $('.col-sm-10 .user_pic').attr('src', backData.data.user_pic)
             }
         })
 

@@ -72,7 +72,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
+                            <a href="#" class="btn btn-success btn-addCate" data-toggle="modal" data-target="#addModal">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
@@ -80,6 +80,7 @@
         </div>
     </div>
 
+    <!-- 模态框 -->
     <div class="modal fade" id="addModal">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -89,13 +90,16 @@
                 </div>
                 <div class="modal-body">
                     <form>
+                        <!-- 新增了一个input,用来存放id, 因为修改需要用到id -->
+                        <!-- input标签的type属性为hidden, 这就是看不见的一个input标签,我们称为隐藏域 -->
+                        <input type="hidden" class="id" name="id">
                         <div class="form-group">
                             <label for="recipient-name" class="control-label">分类名称:</label>
-                            <input type="text" class="form-control" id="recipient-name">
+                            <input type="text" name="name" class="form-control name">
                         </div>
                         <div class="form-group">
                             <label for="message-text" class="control-label">分类别名:</label>
-                            <input type="text" class="form-control" id="recipient-name">
+                            <input type="text" name="slug" class="form-control slug">
                         </div>
                     </form>
                 </div>
@@ -113,8 +117,10 @@
             <td>{{v.name}}</td>
             <td>{{v.slug}}</td>
             <td class="text-center">
-                <a href='javascript:editTr({"id":"1","slug":"uncategorized","name":"未分类"});' class="btn btn-info btn-xs">编辑</a>
-                <a href="javascript:deleteTr( {{v.id}} );" class="btn btn-danger btn-xs">删除</a>
+                     <!-- 2.删除逻辑里面如何知道删除的是哪一个数据呢? 通过id区分.
+                    	搞一个自定义属性data-id来保存id -->
+                <a href="#" data-id="{{v.id}}" class="btn btn-info btn-xs btn-edit">编辑</a>
+                <a href="#" data-id="{{v.id}}" class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
        {{/each}}
@@ -130,11 +136,6 @@
             $('#addModal').modal('hide');
         });
 
-        $('#model_add').click(function () {
-            alert('add');
-            $('#addModal').modal('hide');
-        });
-
         $('.category_table').delegate('a', 'click', function () {
             if ($(this).hasClass('btn-info')) {
                 $('#addModal .modal-title').html('修改分类名称');
@@ -144,17 +145,130 @@
     </script>
     <script>
         // 1.一进到文章分类页面, 发送ajax请求, 获取所有的文章分类信息.
-        $.ajax({
-            url: 'http://localhost:8000/admin/category_search',
-            success: function (backData) {
-                console.log(backData);
-                // 2.把这些文章分类信息, 通过模板引擎渲染到页面上.
-                 //     把id也保存起来了
-                 var resHtml = template('tmp',backData)
-                $('tbody').html(resHtml)
+        // 因为后面要重新获取一次，所以包装成一个函数
+        $(function () {
+            function getCataData() {
+                $.ajax({
+                    url: 'http://localhost:8000/admin/category_search',
+                    success: function (backData) {
+                        console.log(backData);
+                        // 2.把这些文章分类信息, 通过模板引擎渲染到页面上.
+                        //     把id也保存起来了
+                        var resHtml = template('tmp', backData)
+                        $('tbody').html(resHtml)
+                    }
+                })
             }
-        })     
-       
+
+            getCataData()
+
+            //  1.给新增按钮设置一个点击事件.
+            //      注意: 以前写静态模板的时候默认有一个点击事件.要么删掉,要么自己改改.
+            $('.btn-addCate').on('click', function () {
+                // 2.修改模态框里面的title显示的文本
+                $('#addModal .modal-title').html('新增分类');
+                // 3.给模态框里面的按钮，移除一个类名 success,并修改文本(新增)
+                $('#model_add').removeClass('btn-success').text('新增');
+
+                $('#model_add').click(function () {
+                    //判断是新增还是保存. 通过是否有btn-success这个类来判断是否是保按钮.
+                    if ($(this).hasClass('btn-success')) {
+                        var data1 = $('form').serialize();
+                        console.log(data1);
+                        
+                        $.ajax({
+                            type: 'post',
+                            url: 'http://localhost:8000/admin/category_edit ',
+                            data: data1,
+                            success: function (backData) {
+                                console.log(backData);
+                                //修改成功后,修改dom树里面的元素
+                                if (backData.code == 200) {
+                                    getCataData();
+                                }
+
+                            }
+                        })
+                    } else {
+                        //  2.获取用户输入的类别名称和别名
+                        var userName = $('.modal-body .name').val()
+                        var userSlug = $('.modal-body .slug').val()
+
+                        //  3.发送ajax请求
+                        $.ajax({
+                            type: 'post',
+                            url: 'http://localhost:8000/admin/category_add',
+                            data: {
+                                name: userName,
+                                slug: userSlug
+                            },
+                            success: function (backData) {
+                                console.log(backData);
+                                if (backData.code == 200) {
+                                    //  4.新增成功后,再重新获取一次文章类别
+                                    // ​注意:页面一进来要获取,  新增成功后也要获取, 所以可以搞成一个函数调用.
+                                    getCataData()
+                                }
+                            }
+                        })
+                    }
+                     //隐藏模态框
+                   $('#addModal').modal('hide');
+                })
+            })
+
+            // 1.给删除按钮们注册事件.  使用委托的方式.
+            $('tbody').on('click', '.btn-delete', function () {
+                // 2.删除逻辑里面如何知道删除的是哪一个数据呢? 通过id区分.
+                // ​	搞一个自定义属性data-id来保存id
+                // 3.根据id删除文章类别的接口通过验证没有问题
+                // 4.删除成功后,重新的再渲染一次数据
+                var that = $(this);
+                //确认框.
+                if (confirm('你确定要删除吗?')) {
+                    //获取当前这个类别的id
+                    var id = $(this).attr('data-id');
+                    //发送ajax请求.
+                    $.ajax({
+                        type: 'post',
+                        url: 'http://localhost:8000/admin/category_delete',
+                        data: {
+                            id: id
+                        },
+                        success: function (backData) {
+                            console.log(backData);
+                            //判断删除成功
+                            if (backData.code == 200) {
+                                // getCataData();
+                                that.parent().parent().remove();
+                            }
+                        }
+                    });
+                }
+            })
+
+            // 1.编辑按钮也是动态生成的, 所以给他注册事件也要委托的方式注册.
+            $('tbody').on('click', '.btn-edit', function () {
+                // 2.修改模态框里面的title显示的文本
+                $('#addModal .modal-title').text('修改分类')
+                // 3.给模态框里面的按钮，添加一个类名 btn-success,并修改文本(保存)
+                $('#model_add').addClass('btn-success').text('保存')
+
+                // 4.编辑按钮中自定义属性里面存放的id 取出来
+                var id = $(this).attr('data-id')
+                // 5. 获取当前点击的a标签前面的文章类别和文章别名，显示在模态框对应的input标签中
+                var cataName = $(this).parent().prev().prev().text();
+                var slugName = $(this).parent().prev().text();
+                // 6.获取当前点击的编辑按钮保存里面的id，还有当前点击的编辑按钮前面的分类名和别名，赋值给模态框里面对应的input标签
+                $('.modal-body .id').val(id);
+                $('.modal-body .name').val(cataName);
+                $('.modal-body .slug').val(slugName);
+
+                // 隐藏模态框
+                $('#addModal').modal('show');
+            })
+        })
+
     </script>
 </body>
 

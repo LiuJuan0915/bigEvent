@@ -12,9 +12,12 @@
     <link rel="stylesheet" href="css/main.css">
     <link type="text/css" rel="stylesheet" href="js/jedate/css/jedate.css">
     <script src="js/jquery-1.12.4.min.js"></script>
-    <script src="js/jedate/js/jedate.js"></script>
+    <script src="./js/template-web.js"></script>
+    <script src="./js/jedate/js/jedate.js"></script>
     <script src="js/tinymce/js/tinymce/tinymce.min.js"></script>
     <script src="js/tinymce/js/tinymce_setup.js"></script>
+    <script src="./js/moment.js"></script>
+
 </head>
 
 <body>
@@ -33,6 +36,7 @@
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
+                        <img src="" alt="" height="150px">
                         <input type="file" id="exampleInputFile">
                     </div>
                 </div>
@@ -53,13 +57,14 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="dateinput">
+                            <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="test19">
                             <span class="input-group-btn">
                                 <button class="btn btn-default" type="button"
                                     onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
                                         class="iconfont icon-icondate"></i></button>
                             </span>
                         </div>
+
                     </div>
                 </div>
                 <div class="form-group">
@@ -79,7 +84,54 @@
             </form>
         </div>
     </div>
+    <script id="tmp_search" type="text/html">
+        {{each data v}}
+             <option value={{v.id}}>{{v.name}}</option>
+        {{/each}}
+    </script>
+    <script>
+        $(function () {
+            //  图片预览
+            $('#exampleInputFile').on('change', function () {
+                var img = this.files[0]
+                var url = URL.createObjectURL(img)
+                $(this).prev().attr('src', url)
+            });
 
+            // 文章类别数据获取
+            // 1.一进来文章新增页面就发送ajax请求.获取到所有的文章类别数据
+            $.ajax({
+                url: 'http://localhost:8000/admin/category_search',
+                success: function (backData) {
+                    console.log(backData);
+                    // 2.使用模板引擎渲染, 注意的是需要id, 就要使用value属性来放id
+                    if (backData.code == 200) {
+                        var resHtml = template('tmp_search', backData);
+                        $('.form-control').html(resHtml)
+                    }
+                }
+            })
+
+            //日期格式化
+            var date = new Date();
+            console.log(date);
+            var str = moment(date).format('YYYY-MM-DD');
+            console.log(str);
+            $('#dateinput').attr('placeholder', str);
+
+
+            function test(obj) {
+                console.log(obj);
+            }
+
+            var custom = jeDate("#test19", {
+                format: "YYYY-MM-DD",
+                donefun: function (obj) {
+                    console.log(obj);
+                }
+            }).setValue(str);
+        })
+    </script>
 </body>
 
 </html>

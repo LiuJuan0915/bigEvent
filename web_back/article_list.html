@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="./js/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -23,7 +24,7 @@
                 <div class="col-xs-6">
                     <form class="form-inline">
                         <select id="selCategory" name="" class="form-control input-sm">
-                            <option>所有分类</option>
+                            <option value="">所有分类</option>
                             <option>未分类</option>
                             <option>奇趣事</option>
                             <option>会生活</option>
@@ -31,7 +32,7 @@
                         </select>
                         <select id="selStatus" name="" class="form-control input-sm">
                             <option value="">所有状态</option>
-                            <option >草稿</option>
+                            <option>草稿</option>
                             <option>已发布</option>
                         </select>
                         <button id="btnSearch" class="btn btn-default btn-sm">筛选</button>
@@ -291,7 +292,6 @@
         {{/each}}
     </script>
 
-
     <script>
         // 设置左侧菜单
         $('#release_btn').click(function () {
@@ -314,32 +314,76 @@
             }
         })
 
-        // 点击筛选搜索文章
-        $('#btnSearch').on('click', function (e) {
-            e.preventDefault();
+        // 声明一个变量，用来记录当前页码上的数
+        var mytotalPage = 10;
+
+        // 分页
+        // onPageClick事件，是单击页签会执行的事件
+        var $pagination = $('.pagination');
+        var defaultOpts = {
+            totalPages: mytotalPage,
+            visiblePages: 7,
+            first: '首页',
+            prev: '上一页',
+            next: '下一页',
+            last: '尾页',
+            onPageClick: function (event, page) {
+                console.log(event);   // 代表当前点击的事件
+                console.log(page);    // 代表当前点击的页码
+                // 点击页码，发送ajax请求，获取相应的数据
+                getData(page)
+            }
+        };
+        $pagination.twbsPagination(defaultOpts);
+
+        function getData(myPage) {
             //    获取文章类别id和状态
             var cateId = $('#selCategory').val();
             var state = $('#selStatus').val();
-            console.log(cateId,state);
+            console.log(cateId, state);
             //发送ajax请求
             $.ajax({
                 url: 'http://localhost:8000/admin/search',
                 data: {
                     type: cateId,
                     state: state,
-                    page: 1,
+                    page: myPage,
                     perpage: 5
                 },
                 success: function (backData) {
-                    console.log(backData);
+                    // console.log(backData);
                     if (backData.code == 200) {
                         var resHtml = template('tmp_list', backData);
-                        $('tbody').html(resHtml);;
+                        $('tbody').html(resHtml);
+
+                        var totalPages = backData.totalPage;
+                        console.log(totalPages);
+
+                        if (mytotalPage != totalPages) {
+                            mytotalPage = totalPages;
+
+                        var currentPage = $pagination.twbsPagination('getCurrentPage');
+                        // 分页插件调用destroy方法的时候,会自动的去调用onPageClick事件.所以就无限循环了.
+                        $pagination.twbsPagination('destroy');
+                        $pagination.twbsPagination($.extend({}, defaultOpts, {
+                             // startPage: currentPage, //以当前页作为开始页.
+                            startPage: 1,
+                            totalPages: totalPages
+                            }));
+                        }
                     }
                 }
             });
+        }
+
+        // 点击筛选搜索文章
+        $('#btnSearch').on('click', function (e) {
+            e.preventDefault();
+            getData(1)
         });
 
+        // 一进入文章列表这个页面，就触发一次筛选按钮的点击事件
+        $('#btnSearch').trigger('click');
 
     </script>
 

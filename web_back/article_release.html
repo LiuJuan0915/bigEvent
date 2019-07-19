@@ -112,24 +112,10 @@
                 }
             })
 
-            //日期格式化
-            var date = new Date();
-            console.log(date);
-            var str = moment(date).format('YYYY-MM-DD');
+            //日期格式化   
+            var str = moment().format('YYYY-MM-DD');
             console.log(str);
-            $('#dateinput').attr('placeholder', str);
-
-
-            function test(obj) {
-                console.log(obj);
-            }
-
-            var custom = jeDate("#test19", {
-                format: "YYYY-MM-DD",
-                donefun: function (obj) {
-                    console.log(obj);
-                }
-            }).setValue(str);
+            $('#dateinput').val(str);
         })
     </script>
 </body>
